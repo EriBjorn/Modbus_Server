@@ -16,15 +16,24 @@ class ModbusTCPServer(object):
 		"""
 		Initiates modbus server and runs is.
 		Set your own IP-Adresse as host, or "localhost"
-		Host: own IP-adresse
-		Port: port for modbus-communication
+		:param host: own IP-adresse
+		:param port: port for modbus-communication
 		"""
 
 		self.host = host
 		self.port = port
 		self.no_block = no_block
 		self.server = ModbusServer(self.host, self.port, self.no_block)
-		self.server.start()
+
+
+	def connectServer(self):
+		"""
+		Starts the server
+		"""
+		try:
+			self.server.start()
+		except Exception as e:
+			raise Exception("Seems like the server can't assign the requested address.")
 
 
 	def isConnected(self):
@@ -43,13 +52,13 @@ class ModbusTCPServer(object):
 		"""
 
 		self.server.stop()
-		return True
+		return self.server.is_run
 
 	def sendBool(self, register_adrs, value):
 		"""
 		Send boolean value
-		register_adrs: adress to send value
-		value: value to send -> True/False
+		:param register_adrs: adress to send value
+		:param value: value to send -> True/False
 		"""
 
 		return DataBank.set_bits(address=register_adrs, bit_list=value)
@@ -58,17 +67,17 @@ class ModbusTCPServer(object):
 	def readBool(self, register_adrs):
 		"""
 		Recive boolean value
-		register_adrs: adresse to read from
+		:param register_adrs: adresse to read from
 		"""
 
-		return DataBank.get_bits(address=self.register_adrs)
+		return DataBank.get_bits(address=register_adrs)
 
 
 	def sendInt(self, register_adrs, value):
 		"""
 		Sends 32-bit integer value
-		register_adrs: is the modbus adress to the recipients modbus-register.
-		value: is the 32-bit value to send
+		:param register_adrs: is the modbus adress to the recipients modbus-register.
+		:param value: is the 32-bit value to send
 		"""
 
 		return DataBank.set_words(address=register_adrs, word_list=value)
@@ -77,19 +86,21 @@ class ModbusTCPServer(object):
 	def readInt(self, register_adrs):
 		"""
 		Recive 32-bit integer value
-		register_adrs: is the modbus register adress to read from
+		:param register_adrs: is the modbus register adress to read from
 		"""
-		return DataBank.get_words(address=self.register_adrs)
+		return DataBank.get_words(address=register_adrs)
 
 
-if __name__=="__main__":
+ #if __name__=="__main__":
 
-	print("Connecting to server.. ")
-	print("Server started.. ")
-	client = ModbusTCPServer("10.0.12.101", 12345, True)	#10.0.12.101
-	while client.isConnected():
+print("Connecting to server.. ")
+print("Trying to start server.. ")
+server = ModbusTCPServer("10.0.12.249", 502, True)	# Remember to set the IP-adress to your own. 
+while server.isConnected():
 
-		client.sendBool(9001, [bool(True)])
+	print(server.readInt(1000))
 
-	print(client.isConnected())
-	client.disconnect()
+print("The server is running: ", server.isConnected())
+server.disconnect()
+
+
